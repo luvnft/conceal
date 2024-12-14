@@ -12,8 +12,9 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "ponder": "^0.8.3",
     "hono": "^4.5.0",
+    "pinata-web3": "^0.5.3",
+    "ponder": "^0.8.3",
     "viem": "^2.21.3"
   },
   "devDependencies": {
