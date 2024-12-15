@@ -41,5 +41,5 @@ ponder.get("/nft/:id", async (c) => {
 	if (safeNfts.length === 0) {
 		return c.json({ error: "NFT not Found" }, 400);
 	}
-	return c.json(nftData[0], 200);
+	return c.json(safeNfts[0], 200);
 });
