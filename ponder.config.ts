@@ -15,7 +15,7 @@ export default createConfig({
 	contracts: {
 		Concealmint: {
 			abi: ConcealmintAbi,
-			address: "0x9B046Ca68dD4c7F7fC36A98DEdecf01C8EE904f7",
+			address: process.env.CONTRACT_ADDRESS as `0x`,
 			network: "baseSepolia",
 			startBlock: 19169268,
 		},
