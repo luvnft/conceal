@@ -10,7 +10,12 @@ ponder.get("/", (c) => {
 });
 
 ponder.get("/nft", async (c) => {
+	if (c.req.header("x-api-key") !== process.env.API_KEY) {
+		return c.json({ error: "Unauthorized" }, 401);
+	}
+
 	const address = c.req.query("address");
+
 	if (address) {
 		const nftData = await c.db
 			.select()
@@ -31,8 +36,14 @@ ponder.get("/nft", async (c) => {
 });
 
 ponder.get("/nft/:id", async (c) => {
+	if (c.req.header("x-api-key") !== process.env.API_KEY) {
+		return c.json({ error: "Unauthorized" }, 401);
+	}
+
 	const tokenId = c.req.param("id");
+
 	const nftData = await c.db.select().from(token).where(eq(token.id, tokenId));
+
 	const safeNfts = nftData.map((nft) => ({
 		...nft,
 		id: String(nft.id),
