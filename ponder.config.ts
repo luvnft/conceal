@@ -16,6 +16,7 @@ export default createConfig({
       address: "0x9B046Ca68dD4c7F7fC36A98DEdecf01C8EE904f7",
       network: "baseSepolia",
       startBlock: 19169268,
+      interval: 60 / 12
     },
   },
 });
