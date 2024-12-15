@@ -6,7 +6,7 @@ export const account = onchainTable("account", (t) => ({
 
 export const token = onchainTable("token", (t) => ({
 	id: t.bigint().primaryKey(),
-	owner: t.hex().notNull(),
+	owner: t.hex(),
 	token_uri: t.text(),
 	metadata: t.json(),
 	images: t.json(),

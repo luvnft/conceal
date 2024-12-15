@@ -1,56 +1,45 @@
 import { ponder } from "ponder:registry";
-import { graphql } from "ponder";
+import { graphql, eq } from "ponder";
 import { token } from "ponder:schema";
-import { transferEvent } from "../../ponder.schema";
-import { eq } from "ponder";
 
 ponder.use("/", graphql());
 ponder.use("/graphql", graphql());
 
-ponder.get("/hello", (c) => {
+ponder.get("/", (c) => {
 	return c.text("Hello, world!");
 });
 
-ponder.get("/transfers", async (c) => {
-	const transfers = await c.db.select().from(transferEvent);
-
-	const safeTransfers = transfers.map((transfer) => ({
-		...transfer,
-		id: String(transfer.id),
-		token: String(transfer.token),
-		timestamp: Number(transfer.timestamp),
-	}));
-
-	return c.json(safeTransfers);
-});
-
-ponder.get("/account/:address", async (c) => {
-	const address = c.req.param("address");
-
-	const nfts = await c.db.select().from(token).where(eq(token.owner, address));
-
-	const safeNfts = nfts.map((nft) => ({
-		...nft,
-		id: String(nft.id),
-	}));
-	return c.json(safeNfts);
-});
-
 ponder.get("/nft", async (c) => {
-	const nfts = await c.db.select().from(token);
-	const safeNfts = nfts.map((nft) => ({
+	const address = c.req.query("address");
+	if (address) {
+		const nftData = await c.db
+			.select()
+			.from(token)
+			.where(eq(token.owner, address));
+		const safeNfts = nftData.map((nft) => ({
+			...nft,
+			id: String(nft.id),
+		}));
+		return c.json({ nfts: safeNfts }, 200);
+	}
+	const nftData = await c.db.select().from(token);
+	const safeNfts = nftData.map((nft) => ({
 		...nft,
 		id: String(nft.id),
 	}));
-	return c.json(safeNfts);
+	return c.json({ nfts: safeNfts }, 200);
 });
 
 ponder.get("/nft/:id", async (c) => {
 	const tokenId = c.req.param("id");
-	const nfts = await c.db.select().from(token).where(eq(token.id, tokenId));
-	const safeNfts = nfts.map((nft) => ({
+	const nftData = await c.db.select().from(token).where(eq(token.id, tokenId));
+	const safeNfts = nftData.map((nft) => ({
 		...nft,
 		id: String(nft.id),
 	}));
-	return c.json(safeNfts[0]);
+
+	if (safeNfts.length === 0) {
+		return c.json({ error: "NFT not Found" }, 400);
+	}
+	return c.json(nftData[0], 200);
 });
