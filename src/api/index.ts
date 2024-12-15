@@ -36,11 +36,21 @@ ponder.get("/account/:address", async (c) => {
 	return c.json(safeNfts);
 });
 
-ponder.get("/nfts", async (c) => {
+ponder.get("/nft", async (c) => {
 	const nfts = await c.db.select().from(token);
 	const safeNfts = nfts.map((nft) => ({
 		...nft,
 		id: String(nft.id),
 	}));
 	return c.json(safeNfts);
+});
+
+ponder.get("/nft/:id", async (c) => {
+	const tokenId = c.req.param("id");
+	const nfts = await c.db.select().from(token).where(eq(token.id, tokenId));
+	const safeNfts = nfts.map((nft) => ({
+		...nft,
+		id: String(nft.id),
+	}));
+	return c.json(safeNfts[0]);
 });
