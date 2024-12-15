@@ -1,5 +1,5 @@
 import { ponder } from "ponder:registry";
-import { graphql, eq } from "ponder";
+import { graphql, eq, desc } from "ponder";
 import { token } from "ponder:schema";
 
 ponder.use("/", graphql());
@@ -20,14 +20,15 @@ ponder.get("/nft", async (c) => {
 		const nftData = await c.db
 			.select()
 			.from(token)
-			.where(eq(token.owner, address));
+			.where(eq(token.owner, address))
+			.orderBy(desc(token.id));
 		const safeNfts = nftData.map((nft) => ({
 			...nft,
 			id: String(nft.id),
 		}));
 		return c.json({ nfts: safeNfts }, 200);
 	}
-	const nftData = await c.db.select().from(token);
+	const nftData = await c.db.select().from(token).orderBy(desc(token.id));
 	const safeNfts = nftData.map((nft) => ({
 		...nft,
 		id: String(nft.id),
