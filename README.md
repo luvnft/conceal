@@ -28,7 +28,7 @@ If you are using your own contract you will need to make sure you have the corre
 
 Inside the `ponder.config.ts` you will need to update the `startBlock` to match your contract start block. Also be sure to update the network information if your chain is different.
 
-```typescript {20}
+```typescript
 import { createConfig } from "ponder";
 import { http } from "viem";
 
@@ -36,6 +36,7 @@ import { ConcealmintAbi } from "./abis/ConcealmintAbi";
 
 export default createConfig({
 	networks: {
+	  // Update chain info if necessary
 		baseSepolia: {
 			chainId: 84532,
 			transport: http(process.env.PONDER_RPC_URL_84532),
@@ -48,7 +49,7 @@ export default createConfig({
 			abi: ConcealmintAbi,
 			address: process.env.CONTRACT_ADDRESS as `0x`,
 			network: "baseSepolia",
-			startBlock: 19169268,
+			startBlock: 19169268, // Update this
 		},
 	},
 });
