@@ -1,9 +1,6 @@
 import { ponder } from "ponder:registry";
-import { graphql, eq, desc } from "ponder";
+import { eq, desc } from "ponder";
 import { token } from "ponder:schema";
-
-ponder.use("/", graphql());
-ponder.use("/graphql", graphql());
 
 ponder.get("/", (c) => {
 	return c.text("Hello, world!");
