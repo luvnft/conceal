@@ -5,25 +5,58 @@ import { ConcealmintAbi } from "../abis/ConcealmintAbi";
 import { pinata } from "../utils/pinata";
 import type { NFT } from "../utils/types";
 
+const fetchTokenURI = async (tokenId: number) => {
+	try {
+		const tokenURI = await publicClient.readContract({
+			address: process.env.CONTRACT_ADDRESS as `0x`,
+			abi: ConcealmintAbi,
+			functionName: "tokenURI",
+			args: [tokenId],
+		});
+		return tokenURI;
+	} catch (error) {
+		console.error("Error fetching token URI:", error);
+		return null;
+	}
+};
+
+const fetchNFTData = async (tokenURI: string) => {
+	try {
+		const { data: nftData } = await pinata.gateways.get(tokenURI);
+		return nftData as NFT;
+	} catch (error) {
+		console.error("Error fetching NFT data from Pinata:", error);
+		return null;
+	}
+};
+
+const fetchBaseImageURL = async (image: string) => {
+	try {
+		const baseImageURL = await pinata.gateways.convert(image);
+		return baseImageURL;
+	} catch (error) {
+		console.error("Error fetching image URL:", error);
+		return null;
+	}
+};
+
 ponder.on("Concealmint:MetadataUpdate", async ({ event, context }) => {
-	const tokenURI = await publicClient.readContract({
-		address: process.env.CONTRACT_ADDRESS as `0x`,
-		abi: ConcealmintAbi,
-		functionName: "tokenURI",
-		args: [event.args._tokenId],
-	});
+	const tokenId = event.args._tokenId;
 
-	const { data: nftData } = await pinata.gateways.get(tokenURI as string);
+	const tokenURI = await fetchTokenURI(tokenId);
+	if (!tokenURI) return; // Early exit if tokenURI fetch fails
 
-	const nft = nftData as unknown as NFT;
+	const nft = await fetchNFTData(tokenURI as string);
+	if (!nft) return; // Early exit if NFT data fetch fails
 
-	const baseImageURL = await pinata.gateways.convert(nft.image);
+	const baseImageURL = await fetchBaseImageURL(nft.image);
+	if (!baseImageURL) return; // Early exit if image URL fetch fails
 
 	// Create or update a Token.
 	await context.db
 		.insert(schema.token)
 		.values({
-			id: event.args._tokenId,
+			id: tokenId,
 			token_uri: tokenURI,
 			metadata: {
 				name: nft.name,
@@ -41,7 +74,6 @@ ponder.on("Concealmint:MetadataUpdate", async ({ event, context }) => {
 			},
 		})
 		.onConflictDoUpdate({
-			// Update all fields except 'id' and 'owner'
 			token_uri: tokenURI,
 			metadata: {
 				name: nft.name,
@@ -72,18 +104,14 @@ ponder.on("Concealmint:Transfer", async ({ event, context }) => {
 		.values({ address: event.args.to })
 		.onConflictDoNothing();
 
-	const tokenURI = await publicClient.readContract({
-		address: process.env.CONTRACT_ADDRESS as `0x`,
-		abi: ConcealmintAbi,
-		functionName: "tokenURI",
-		args: [event.args.tokenId],
-	});
+	const tokenURI = await fetchTokenURI(event.args.tokenId);
+	if (!tokenURI) return; // Early exit if tokenURI fetch fails
 
-	const { data: nftData } = await pinata.gateways.get(tokenURI as string);
+	const nft = await fetchNFTData(tokenURI as string);
+	if (!nft) return; // Early exit if NFT data fetch fails
 
-	const nft = nftData as unknown as NFT;
-
-	const baseImageURL = await pinata.gateways.convert(nft.image);
+	const baseImageURL = await fetchBaseImageURL(nft.image);
+	if (!baseImageURL) return; // Early exit if image URL fetch fails
 
 	// Create or update a Token.
 	await context.db
